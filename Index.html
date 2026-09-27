@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KOGTEE — Тест для мастера маникюра</title>
+<style>
+:root{--ink:#252329;--muted:#706b75;--line:#e7e1e6;--soft:#faf7fa;--accent:#9b6b88}
+*{box-sizing:border-box} body{margin:0;background:#f5f1f4;color:var(--ink);font-family:Arial,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:24px 14px 50px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 8px 30px #0000000b}
+.logo{font-size:30px;font-weight:800;letter-spacing:4px;text-align:center;margin:4px 0 5px}
+.sub{text-align:center;color:var(--muted);margin:0 0 22px}
+.progress{height:8px;background:#eee8ed;border-radius:99px;overflow:hidden;margin-bottom:24px}
+.progress>div{height:100%;width:0;background:var(--accent);transition:.25s}
+label.name{display:block;font-weight:700;margin-bottom:8px}
+input[type=text]{width:100%;padding:13px 14px;border:1px solid #d9d2d8;border-radius:10px;font-size:16px;margin-bottom:22px}
+.q{padding:18px 0;border-top:1px solid var(--line)}
+.q:first-of-type{border-top:0}.q h3{font-size:17px;line-height:1.4;margin:0 0 12px}
+.opt{display:block;padding:10px 12px;border:1px solid #e2dce1;border-radius:10px;margin:8px 0;cursor:pointer;background:#fff}
+.opt:hover{background:var(--soft)}
+.opt input{margin-right:9px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+button{border:0;border-radius:11px;padding:13px 18px;font-size:16px;font-weight:700;cursor:pointer}
+.primary{background:var(--accent);color:white}.secondary{background:#eee8ed;color:var(--ink)}
+.result{display:none;text-align:center;padding:20px 0}
+.score{font-size:44px;font-weight:800;margin:10px 0;color:var(--accent)}
+.note{color:var(--muted);line-height:1.5}
+.err{color:#a33;font-weight:700;margin-top:12px;display:none}
+@media print{body{background:#fff}.card{box-shadow:none}.actions{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card">
+<div class="logo">KOGTEE</div>
+<p class="sub">Онлайн-тест для мастера маникюра</p>
+<div class="progress"><div id="bar"></div></div>
+<label class="name" for="student">Имя и фамилия</label>
+<input id="student" type="text" placeholder="Введите имя ученика">
+<form id="quiz"></form>
+<div class="err" id="err">Пожалуйста, ответьте на все вопросы.</div>
+<div class="actions">
+<button class="primary" type="button" onclick="checkQuiz()">Завершить тест</button>
+<button class="secondary" type="button" onclick="window.print()">Печать результата</button>
+</div>
+<div class="result" id="result">
+<h2>Тест завершён</h2>
+<div class="score" id="score"></div>
+<p id="resultText"></p>
+<p class="note">Результат можно распечатать или сохранить как PDF через функцию печати браузера.</p>
+</div>
+</div>
+</div>
+<script>
+const questions=[
+["Какова основная цель дезинфекции маникюрных инструментов перед стерилизацией?",["Удалить загрязнения и снизить количество микроорганизмов","Придать инструментам блеск","Изменить цвет инструмента","Заточить инструмент"],"radio",[0]],
+["Что необходимо сделать перед началом работы с клиентом?",["Обработать руки и подготовить рабочее место","Сразу нанести покрытие","Попросить клиента выбрать цвет","Проверить только лампу"],"radio",[0]],
+["Какие действия относятся к правильной подготовке ногтевой пластины перед покрытием? Выберите все подходящие варианты.",["Удалить загрязнения и пыль","Обработать кутикулу по выбранной технике","Оставить на ногте жирный крем","Подготовить поверхность согласно технологии используемого материала"],"check",[0,1,3]],
+["Для чего используется пушер при маникюре?",["Для аккуратного отодвигания кутикулы","Для полировки покрытия","Для сушки материала","Для нанесения топа"],"radio",[0]],
+["Почему важно не перепиливать натуральную ногтевую пластину?",["Чтобы не истончать и не травмировать ноготь","Чтобы покрытие высохло быстрее","Чтобы ноготь стал белее","Чтобы увеличить длину ногтя"],"radio",[0]],
+["Какой инструмент обычно используют для формирования свободного края ногтя?",["Пилку","Лампу","Бафик для блеска","Кисть"],"radio",[0]],
+["Какие факторы могут влиять на качество сцепления покрытия с натуральным ногтем? Выберите все подходящие варианты.",["Качество подготовки ногтевой пластины","Наличие загрязнений или жировых остатков","Соблюдение технологии нанесения материала","Цвет одежды клиента"],"check",[0,1,2]],
+["Для чего используется база в системе гель-лакового покрытия?",["Для подготовки слоя между натуральным ногтем и последующими материалами","Для дезинфекции рук","Для снятия покрытия","Для очистки лампы"],"radio",[0]],
+["Почему важно соблюдать рекомендованное время полимеризации материала в лампе?",["Чтобы материал корректно полимеризовался","Чтобы ноготь стал длиннее","Чтобы изменить цвет материала","Чтобы не использовать базу"],"radio",[0]],
+["Что следует сделать, если во время процедуры обнаружены признаки воспаления или повреждения околоногтевой зоны?",["Оценить ситуацию и при необходимости отказаться от процедуры","Продолжить работу как обычно","Скрыть повреждение покрытием","Сильнее обработать повреждённый участок"],"radio",[0]],
+["Какова одна из основных причин использования одноразовых расходных материалов там, где это предусмотрено технологией?",["Снизить риск передачи загрязнений и микроорганизмов","Сделать процедуру быстрее в любом случае","Сэкономить на дезинфекции","Изменить форму ногтя"],"radio",[0]],
+["Многоразовые инструменты после использования должны проходить предусмотренный протокол обработки, даже если визуально выглядят чистыми.",["Верно","Неверно"],"radio",[0]],
+["Что помогает мастеру контролировать форму ногтя при опиле?",["Соблюдение симметрии и контроль боковых линий","Только выбор цвета покрытия","Увеличение времени сушки","Использование крема до опила"],"radio",[0]],
+["Какие действия помогают поддерживать гигиену рабочего места мастера? Выберите все подходящие варианты.",["Обрабатывать рабочие поверхности по установленному режиму","Правильно утилизировать использованные одноразовые материалы","Хранить использованные инструменты вместе с обработанными","Разделять чистые и использованные материалы"],"check",[0,1,3]],
+["Зачем мастер оценивает состояние натуральных ногтей клиента перед процедурой?",["Чтобы выбрать безопасную и подходящую технику работы","Чтобы определить любимый цвет клиента","Чтобы сократить время консультации","Чтобы не использовать перчатки"],"radio",[0]],
+["Что может произойти при попадании материала на кожу и его последующей полимеризации?",["Повышается риск раздражения и нежелательной реакции кожи","Ноготь обязательно станет крепче","Материал всегда сам удалится","Никакой реакции быть не может"],"radio",[0]]
+];
+const form=document.getElementById('quiz');
+questions.forEach((q,i)=>{
+ let d=document.createElement('div');d.className='q';
+ d.innerHTML='<h3>'+(i+1)+'. '+q[0]+'</h3>';
+ q[1].forEach((o,j)=>{
+   d.innerHTML+=`<label class="opt"><input type="${q[2]==='check'?'checkbox':'radio'}" name="q${i}" value="${j}"> ${o}</label>`;
+ });
+ form.appendChild(d);
+});
+document.getElementById('bar').style.width='100%';
+function checkQuiz(){
+ let score=0, complete=true;
+ questions.forEach((q,i)=>{
+   let vals=[...document.querySelectorAll(`input[name="q${i}"]:checked`)].map(x=>+x.value).sort((a,b)=>a-b);
+   if(!vals.length) complete=false;
+   let ans=[...q[3]].sort((a,b)=>a-b);
+   if(vals.length===ans.length && vals.every((v,k)=>v===ans[k])) score++;
+ });
+ const err=document.getElementById('err');
+ err.style.display=complete?'none':'block';
+ if(!complete){window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'});return;}
+ document.getElementById('score').textContent=score+' / '+questions.length;
+ const name=document.getElementById('student').value.trim();
+ document.getElementById('resultText').textContent=(name?name+', ':'')+'результат теста: '+score+' из '+questions.length+'.';
+ document.getElementById('result').style.display='block';
+ document.getElementById('result').scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>
